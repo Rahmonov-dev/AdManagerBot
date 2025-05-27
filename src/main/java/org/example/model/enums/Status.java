@@ -1,0 +1,28 @@
+package org.example.model.enums;
+
+public enum Status {
+    START,
+    WAITING_FOR_LANGUAGE_SELECTION,
+
+    WAITING_FOR_CHANNEL_VERIFICATION,
+
+    WAITING_FOR_AD_TEXT,
+
+    WAITING_FOR_MEDIA,
+
+    WAITING_FOR_CONFIRMATION,
+
+    SENDING_AD,
+
+    FINISHED,
+
+    CANCELLED,
+
+    UNKNOWN,
+
+    WAITING_FOR_SCHEDULE_TIME,
+
+    WAITING_FOR_PAYMENT,
+
+    ADMIN_PANEL
+}
