@@ -35,7 +35,8 @@ build/
 target/
 .idea/
 *.iml
-*.env/
+.env
+
 ### VS Code ###
 .vscode/
 
