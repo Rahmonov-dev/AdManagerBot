@@ -2,7 +2,6 @@ package org.example.repository;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.Synchronized;
 import org.example.config.Config;
 import org.example.model.User;
@@ -17,8 +16,7 @@ import java.util.List;
 public class UserRepository {
     private static final Logger logger = LoggerFactory.getLogger(UserRepository.class);
     private static final String FILE_NAME = Config.get("BOT_USER_JSON");
-    private static final ObjectMapper objectMapper = new ObjectMapper()
-            .enable(SerializationFeature.INDENT_OUTPUT);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Synchronized
     public static void saveUsers(List<User> users) {
@@ -31,7 +29,6 @@ public class UserRepository {
         try {
             logger.info("Saving {} users to file: {}", users.size(), file.getAbsolutePath());
             
-            // Ensure parent directory exists
             File parentDir = file.getParentFile();
             if (parentDir != null && !parentDir.exists()) {
                 logger.info("Creating parent directory: {}", parentDir.getAbsolutePath());
@@ -40,7 +37,6 @@ public class UserRepository {
                 }
             }
             
-            // Create file if it doesn't exist
             if (!file.exists()) {
                 logger.info("Creating new file: {}", file.getAbsolutePath());
                 if (!file.createNewFile()) {
@@ -48,11 +44,9 @@ public class UserRepository {
                 }
             }
             
-            // Write to a temporary file first
             File tempFile = new File(file.getAbsolutePath() + ".tmp");
             objectMapper.writeValue(tempFile, users);
             
-            // Replace the original file with the temporary file
             if (file.exists() && !file.delete()) {
                 logger.warn("Could not delete original file before rename");
             }
@@ -71,7 +65,6 @@ public class UserRepository {
     public static List<User> readUsers() {
         File file = new File(FILE_NAME);
         
-        // If file doesn't exist, create it with empty array
         if (!file.exists()) {
             logger.info("User file does not exist: {}. Creating new file with empty array.", FILE_NAME);
             List<User> emptyList = new ArrayList<>();
@@ -79,7 +72,6 @@ public class UserRepository {
             return emptyList;
         }
         
-        // If file is empty, initialize it with empty array
         if (file.length() == 0) {
             logger.info("User file is empty: {}. Initializing with empty array.", FILE_NAME);
             List<User> emptyList = new ArrayList<>();
@@ -102,7 +94,6 @@ public class UserRepository {
             return users != null ? users : new ArrayList<>();
         } catch (IOException e) {
             logger.error("Failed to read users from file: {}", FILE_NAME, e);
-            // If there's an error reading, return empty list instead of crashing
             return new ArrayList<>();
         }
     }

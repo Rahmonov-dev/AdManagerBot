@@ -16,5 +16,7 @@ public class User {
     private boolean isAdmin;
     private Status status;
     private String language;
+
+
 }
 

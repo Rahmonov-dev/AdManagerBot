@@ -12,12 +12,12 @@ import java.util.List;
 public class UserService {
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
-    public static User getByChatId(Long chatId, Message message) {
-        logger.info("Fetching user for chatId: {}", chatId);
+    public static User getByChatId( Message message) {
+        logger.info("Fetching user for chatId: {}", message.getChatId());
         List<User> users = UserRepository.readUsers();
 
         User user = users.stream()
-                .filter(u -> u.getId().equals(chatId))
+                .filter(u -> u.getId().equals(message.getChatId()))
                 .findFirst()
                 .orElse(null);
 
@@ -26,17 +26,17 @@ public class UserService {
             return user;
         }
 
-        logger.info("Creating new user for chatId: {}", chatId);
-        User newUser = createUser(chatId, message);
+        logger.info("Creating new user for chatId: {}", message.getChatId());
+        User newUser = createUser( message);
         users.add(newUser);
         UserRepository.saveUsers(users);
         logger.info("Saved new user: {}", newUser.getUsername());
         return newUser;
     }
 
-    private static User createUser(Long chatId, Message message) {
+    private static User createUser( Message message) {
         User newUser = new User();
-        newUser.setId(chatId);
+        newUser.setId(message.getFrom().getId());
         newUser.setUsername(message.getFrom().getUserName());
         newUser.setStatus(Status.START);
         newUser.setAdmin(false);
