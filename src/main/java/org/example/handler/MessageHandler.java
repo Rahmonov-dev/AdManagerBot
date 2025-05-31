@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.api.objects.PhotoSize;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.example.model.Advertisement;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +57,7 @@ public class MessageHandler {
                 return handleAdminPanel(message, user);
             case USER_PANEL:
                 return handleUserPanel(message, user);
-                
+
             // Advertisement flow states - handle text inputs
             case WAITING_FOR_AD_TEXT:
             case WAITING_FOR_AD_PRICE:
@@ -65,12 +66,12 @@ public class MessageHandler {
             case WAITING_FOR_AD_CONTACT:
             case WAITING_FOR_AD_CONFIRMATION:
                 return handleAdText(message, user);
-                
+
             // Handle photo uploads
             case WAITING_FOR_AD_PHOTO:
-                System.out.println("DEBUG: In WAITING_FOR_AD_PHOTO. hasPhoto: " + message.hasPhoto() + 
-                                 ", hasText: " + message.hasText() + 
-                                 ", message: " + message);
+                System.out.println("DEBUG: In WAITING_FOR_AD_PHOTO. hasPhoto: " + message.hasPhoto() +
+                        ", hasText: " + message.hasText() +
+                        ", message: " + message);
                 if (message.hasPhoto()) {
                     System.out.println("DEBUG: Routing to handleMedia");
                     return handleMedia(message, user);
@@ -78,7 +79,7 @@ public class MessageHandler {
                     System.out.println("DEBUG: No photo, routing to handleAdText");
                     return handleAdText(message, user);
                 }
-                
+
             case WAITING_FOR_MEDIA:
                 return handleMedia(message, user);
             case WAITING_FOR_CONFIRMATION:
@@ -101,7 +102,7 @@ public class MessageHandler {
 
     public static BotApiMethod<?> handleUserPanel(Message message, User user) {
         String text = message.getText();
-        
+
         // Check if user clicked on "Reklama berish" button
         if (text != null && text.equals(ResourceBundleManager.getMessage("button.send_ad", user.getLanguage()))) {
             // Create new advertisement
@@ -109,14 +110,14 @@ public class MessageHandler {
             ad.setUserId(message.getChatId());
             ad.setCreatedAt(LocalDateTime.now());
             tempAds.put(message.getChatId(), ad);
-            
+
             // Ask for product name
             user.setStatus(Status.WAITING_FOR_AD_TEXT);
             UserService.update(user);
-            return MessageService.createMessage(message.getChatId(), 
-                ResourceBundleManager.getMessage("ad.ask_product_name", user.getLanguage()));
+            return MessageService.createMessage(message.getChatId(),
+                    ResourceBundleManager.getMessage("ad.ask_product_name", user.getLanguage()));
         }
-        
+
         // Default behavior - show user panel
         user.setStatus(Status.USER_PANEL);
         UserService.update(user);
@@ -130,22 +131,22 @@ public class MessageHandler {
     public static BotApiMethod<?> handleAdminPanel(Message message, User user) {
         Long chatId = message.getChatId();
         String text = message.getText();
-        
-        if (text != null && text.contains(ResourceBundleManager.getMessage("button.user_panel",user.getLanguage()))) {
+
+        if (text != null && text.contains(ResourceBundleManager.getMessage("button.user_panel", user.getLanguage()))) {
             return handleUserPanel(message, user);
-        } else if (text != null && text.contains(ResourceBundleManager.getMessage("button.admin_panel",user.getLanguage()))) {
+        } else if (text != null && text.contains(ResourceBundleManager.getMessage("button.admin_panel", user.getLanguage()))) {
             return MessageService.createMessage(
-                chatId,
-                ResourceBundleManager.getMessage("admin_panel", user.getLanguage()),
-                createAdminKeyboard(user)
+                    chatId,
+                    ResourceBundleManager.getMessage("admin_panel", user.getLanguage()),
+                    createAdminKeyboard(user)
             );
         }
 
         if (user.isAdmin()) {
             return MessageService.createMessage(
-                chatId, 
-                ResourceBundleManager.getMessage("admin_panel", user.getLanguage()),
-                createAdminUserKeyboard(user)
+                    chatId,
+                    ResourceBundleManager.getMessage("admin_panel", user.getLanguage()),
+                    createAdminUserKeyboard(user)
             );
         } else {
             return handleUserPanel(message, user);
@@ -176,11 +177,11 @@ public class MessageHandler {
         Long chatId = message.getChatId();
         String text = message.getText();
         Advertisement ad = tempAds.get(chatId);
-        
+
         if (ad == null) {
             return handleUserPanel(message, user);
         }
-        
+
         if (text != null) {
             if (text.startsWith("✅")) {
                 // Save the advertisement (in a real app, save to database)
@@ -190,93 +191,69 @@ public class MessageHandler {
                 tempAds.remove(chatId);
                 user.setStatus(Status.USER_PANEL);
                 UserService.update(user);
-                
+
                 // Send the formatted ad
                 return MessageService.createMessage(chatId, adText, createUserKeyboard(user));
-                
+
             } else if (text.startsWith("❌")) {
                 // Cancel the ad
                 tempAds.remove(chatId);
                 user.setStatus(Status.USER_PANEL);
                 UserService.update(user);
-                return MessageService.createMessage(chatId, 
-                    ResourceBundleManager.getMessage("ad.cancelled", user.getLanguage()),
-                    createUserKeyboard(user));
+                return MessageService.createMessage(chatId,
+                        ResourceBundleManager.getMessage("ad.cancelled", user.getLanguage()),
+                        createUserKeyboard(user));
             }
         }
-        
-        return MessageService.createMessage(chatId, 
-            ResourceBundleManager.getMessage("error.invalid_choice", user.getLanguage()));
+
+        return MessageService.createMessage(chatId,
+                ResourceBundleManager.getMessage("error.invalid_choice", user.getLanguage()));
     }
 
     private static BotApiMethod<?> handleMedia(Message message, User user) {
         Long chatId = message.getChatId();
-        System.out.println("DEBUG: handleMedia called. Status: " + user.getStatus() + 
-                         ", hasPhoto: " + message.hasPhoto() + 
-                         ", chatId: " + chatId);
-        
+        System.out.println("DEBUG: handleMedia called. Status: " + user.getStatus() +
+                ", hasPhoto: " + message.hasPhoto() +
+                ", chatId: " + chatId);
+
         // Handle photo upload
         if (user.getStatus() == Status.WAITING_FOR_AD_PHOTO) {
-            System.out.println("DEBUG: User is in WAITING_FOR_AD_PHOTO state");
-            
             if (message.hasPhoto()) {
-                System.out.println("DEBUG: Message contains photos");
+                List<PhotoSize> photos = message.getPhoto();
+                PhotoSize photo = photos.get(photos.size() - 1);  // Eng katta rasm
+                String fileId = photo.getFileId();
+
                 Advertisement ad = tempAds.get(chatId);
                 if (ad != null) {
-                    try {
-                        // Get the largest available photo (last in the array is the highest resolution)
-                        List<PhotoSize> photos = message.getPhoto();
-                        System.out.println("DEBUG: Found " + photos.size() + " photo sizes");
-                        
-                        PhotoSize photo = photos.get(photos.size() - 1);
-                        String fileId = photo.getFileId();
-                        System.out.println("DEBUG: Selected photo - FileID: " + fileId + 
-                                         ", width: " + photo.getWidth() + 
-                                         ", height: " + photo.getHeight());
-                        
-                        ad.setPhotoFileId(fileId);
-                        tempAds.put(chatId, ad); // Update the ad in the map
-                        
-                        // Move to next step
-                        user.setStatus(Status.WAITING_FOR_AD_CONTACT);
-                        UserService.update(user);
-                        
-                        System.out.println("DEBUG: Photo processed successfully, moving to contact info");
-                        return MessageService.createMessage(chatId, 
+                    ad.setPhotoFileId(fileId);  // Rasm fayl ID sini saqlaymiz
+                    tempAds.put(chatId, ad);    // Yangilangan reklamani saqlaymiz
+
+                    user.setStatus(Status.WAITING_FOR_AD_CONTACT);  // Keyingi status
+                    UserService.update(user);
+
+                    return MessageService.createMessage(chatId,
                             ResourceBundleManager.getMessage("ad.ask_contact", user.getLanguage()));
-                            
-                    } catch (Exception e) {
-                        System.err.println("ERROR processing photo: " + e.getMessage());
-                        e.printStackTrace();
-                        return MessageService.createMessage(chatId, 
-                            "Xatolik yuz berdi. Iltimos, qaytadan urinib ko'ring. " + e.getMessage());
-                    }
                 } else {
-                    System.err.println("ERROR: No advertisement found for chat " + chatId);
-                    return MessageService.createMessage(chatId, 
-                        "Xatolik yuz berdi. Iltimos, qaytadan boshlang /start");
+                    // Reklama topilmadi, xatolik
                 }
             } else {
-                System.err.println("ERROR: No photo found in the message");
-                return MessageService.createMessage(chatId, 
-                    "Iltimos, faqat rasm yuboring.");
+                // Rasm yo'q, foydalanuvchiga rasm yuborishni eslatish
             }
         } else {
-            System.err.println("ERROR: Unexpected status: " + user.getStatus() + " (expected WAITING_FOR_AD_PHOTO)");
-            return MessageService.createMessage(chatId, 
-                "Iltimos, avval mahsulot haqida ma'lumotlarni kiriting.");
+            // Notog'ri statusda, rasm kutilmayapti
         }
+        return null;
     }
 
     private static BotApiMethod<?> handleAdText(Message message, User user) {
         Long chatId = message.getChatId();
         String text = message.getText();
-        
+
         // Check if user clicked on "Reklama berish" button
         if (text != null && text.equals(ResourceBundleManager.getMessage("button.send_ad", user.getLanguage()))) {
             return startNewAdvertisement(chatId, user);
         }
-        
+
         switch (user.getStatus()) {
             case WAITING_FOR_AD_TEXT:
                 return handleProductNameInput(chatId, text, user);
@@ -292,88 +269,88 @@ public class MessageHandler {
                 return getErrorMessage(chatId, user);
         }
     }
-    
+
     private static BotApiMethod<?> startNewAdvertisement(Long chatId, User user) {
         Advertisement ad = new Advertisement();
         ad.setUserId(chatId);
         ad.setCreatedAt(LocalDateTime.now());
         tempAds.put(chatId, ad);
-        
+
         user.setStatus(Status.WAITING_FOR_AD_TEXT);
         UserService.update(user);
-        return MessageService.createMessage(chatId, 
-            ResourceBundleManager.getMessage("ad.ask_product_name", user.getLanguage()));
+        return MessageService.createMessage(chatId,
+                ResourceBundleManager.getMessage("ad.ask_product_name", user.getLanguage()));
     }
-    
+
     private static BotApiMethod<?> handleProductNameInput(Long chatId, String productName, User user) {
         Advertisement ad = tempAds.get(chatId);
         if (ad != null) {
             ad.setProductName(productName);
             user.setStatus(Status.WAITING_FOR_AD_PRICE);
             UserService.update(user);
-            return MessageService.createMessage(chatId, 
-                ResourceBundleManager.getMessage("ad.ask_price", user.getLanguage()));
+            return MessageService.createMessage(chatId,
+                    ResourceBundleManager.getMessage("ad.ask_price", user.getLanguage()));
         }
         return getErrorMessage(chatId, user);
     }
-    
+
     private static BotApiMethod<?> handlePriceInput(Long chatId, String price, User user) {
         Advertisement ad = tempAds.get(chatId);
         if (ad != null) {
             ad.setPrice(price);
             user.setStatus(Status.WAITING_FOR_AD_LOCATION);
             UserService.update(user);
-            return MessageService.createMessage(chatId, 
-                ResourceBundleManager.getMessage("ad.ask_location", user.getLanguage()));
+            return MessageService.createMessage(chatId,
+                    ResourceBundleManager.getMessage("ad.ask_location", user.getLanguage()));
         }
         return getErrorMessage(chatId, user);
     }
-    
+
     private static BotApiMethod<?> handleLocationInput(Long chatId, String location, User user) {
         Advertisement ad = tempAds.get(chatId);
         if (ad != null) {
             ad.setLocation(location);
             user.setStatus(Status.WAITING_FOR_AD_DESCRIPTION);
             UserService.update(user);
-            return MessageService.createMessage(chatId, 
-                ResourceBundleManager.getMessage("ad.ask_description", user.getLanguage()));
+            return MessageService.createMessage(chatId,
+                    ResourceBundleManager.getMessage("ad.ask_description", user.getLanguage()));
         }
         return getErrorMessage(chatId, user);
     }
-    
+
     private static BotApiMethod<?> handleDescriptionInput(Long chatId, String description, User user) {
         Advertisement ad = tempAds.get(chatId);
         if (ad != null) {
             ad.setDescription(description);
             user.setStatus(Status.WAITING_FOR_AD_PHOTO);
             UserService.update(user);
-            return MessageService.createMessage(chatId, 
-                ResourceBundleManager.getMessage("ad.ask_photo", user.getLanguage()));
+            return MessageService.createMessage(chatId,
+                    ResourceBundleManager.getMessage("ad.ask_photo", user.getLanguage()));
         }
         return getErrorMessage(chatId, user);
     }
-    
+
     private static BotApiMethod<?> handleContactInput(Long chatId, String contactInfo, User user) {
         Advertisement ad = tempAds.get(chatId);
         if (ad != null) {
             ad.setContactInfo(contactInfo);
             user.setStatus(Status.WAITING_FOR_AD_CONFIRMATION);
             UserService.update(user);
-            
+
             String confirmationMessage = String.format(
-                ResourceBundleManager.getMessage("ad.confirm", user.getLanguage()),
-                ad.getProductName(),
-                ad.getPrice(),
-                ad.getLocation(),
-                ad.getDescription(),
-                ad.getContactInfo()
+                    ResourceBundleManager.getMessage("ad.confirm", user.getLanguage()),
+                    ad.getProductName(),
+                    ad.getPrice(),
+                    ad.getLocation(),
+                    ad.getDescription(),
+                    ad.getContactInfo()
             );
-            
+
             return MessageService.createMessage(chatId, confirmationMessage, createConfirmationKeyboard(user));
         }
         return getErrorMessage(chatId, user);
     }
-    
+
     private static ReplyKeyboardMarkup createConfirmationKeyboard(User user) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
@@ -385,10 +362,10 @@ public class MessageHandler {
         keyboardMarkup.setResizeKeyboard(true);
         return keyboardMarkup;
     }
-    
+
     private static BotApiMethod<?> getErrorMessage(Long chatId, User user) {
-        return MessageService.createMessage(chatId, 
-            ResourceBundleManager.getMessage("error.unknown_command", user.getLanguage()));
+        return MessageService.createMessage(chatId,
+                ResourceBundleManager.getMessage("error.unknown_command", user.getLanguage()));
     }
 
 
