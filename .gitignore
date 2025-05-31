@@ -36,6 +36,14 @@ target/
 .idea/
 *.iml
 .env
+log.json
+logback.xml
+logbakc.xml
+messages_ru.properties
+messages_uz.properties
+project.txt
+users.json
+
 
 ### VS Code ###
 .vscode/
