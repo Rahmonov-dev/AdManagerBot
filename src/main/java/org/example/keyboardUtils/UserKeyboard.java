@@ -23,16 +23,43 @@ public class UserKeyboard {
         // Add Back button in a new row
         KeyboardRow thirdRow = new KeyboardRow();
         thirdRow.add(ResourceBundleManager.getMessage("button.back",user.getLanguage()));
-        
+
         keyboard.add(firstRow);
         keyboard.add(secondRow);
         keyboard.add(thirdRow);
+
         
         keyboardMarkup.setKeyboard(keyboard);
         keyboardMarkup.setResizeKeyboard(true);
         keyboardMarkup.setSelective(true);
-        keyboardMarkup.setOneTimeKeyboard(false);
+        keyboardMarkup.setOneTimeKeyboard(true);
         
         return keyboardMarkup;
     }
+    public static ReplyKeyboardMarkup createStatisticsKeyboard(User user){
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+
+        KeyboardRow firstRow = new KeyboardRow();
+        firstRow.add(ResourceBundleManager.getMessage("button_ad_statistics",user.getLanguage()));
+
+        KeyboardRow secondRow = new KeyboardRow();
+        secondRow.add(ResourceBundleManager.getMessage("button_ad_price",user.getLanguage()));
+
+
+        KeyboardRow thirdRow = new KeyboardRow();
+        thirdRow.add(ResourceBundleManager.getMessage("button_back",user.getLanguage()));
+
+        keyboard.add(firstRow);
+        keyboard.add(secondRow);
+        keyboard.add(thirdRow);
+
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setSelective(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+
+        return keyboardMarkup;
+    }
+
 }

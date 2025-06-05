@@ -26,6 +26,18 @@ public class AdminUserKeyboard {
         
         return keyboardMarkup;
     }
+    public static ReplyKeyboardMarkup createConfirmationKeyboard(User user) {
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        KeyboardRow row = new KeyboardRow();
+        row.add("✅ " + ResourceBundleManager.getMessage("button.confirm", user.getLanguage()));
+        row.add("❌ " + ResourceBundleManager.getMessage("button.cancel", user.getLanguage()));
+        keyboard.add(row);
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        return keyboardMarkup;
+    }
+
     public static ReplyKeyboardMarkup createAdminKeyboard(User user) {
         ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
         List<KeyboardRow> keyboard = new ArrayList<>();
@@ -33,11 +45,10 @@ public class AdminUserKeyboard {
         // First row
         KeyboardRow firstRow = new KeyboardRow();
         firstRow.add(ResourceBundleManager.getMessage("button.approve_ad",user.getLanguage()));
-        firstRow.add(ResourceBundleManager.getMessage("button.approve_payment",user.getLanguage()));
+        firstRow.add(ResourceBundleManager.getMessage("button.ad_statistics",user.getLanguage()));
 
         // Second row
         KeyboardRow secondRow = new KeyboardRow();
-        secondRow.add(ResourceBundleManager.getMessage("button.ad_statistics",user.getLanguage()));
         secondRow.add(ResourceBundleManager.getMessage("button.user_control",user.getLanguage()));
 
         // Third row
